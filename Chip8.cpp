@@ -1,5 +1,6 @@
 #include <fstream> // this includes teh fsteam header file which provides functionality for file input/output in c++
 #include "Chip8.hpp"
+#include <random>
 
 //roms will look for memeory starting at 0x200 address as the 0x000-0x1FF was reserved in the original
 const unsigned int START_ADRESS = 0x200; 
