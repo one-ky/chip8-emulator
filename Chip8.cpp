@@ -32,6 +32,7 @@ uint8_t fontset[FONTSET_SIZE] =
 
 // initially set PC to 0x200 in the constructor because that will be the first instruction executed
 Chip8::Chip8()
+    :randGen(std::chrono::system_clock::now().time_since_epoch().count()) //member initalizer list, init randGen with seed
 {
     //Initilize PC
     pc = START_ADRESS;
@@ -41,6 +42,9 @@ Chip8::Chip8()
     {
         memory[FONTSET_START_ADRESS + i] = fontset[i];
     }
+
+    // Initialize RNG
+    randByte = std::uniform_int_distribution<uint8_t>(0, 255U); //get a random number between 0 and 255
 }
 
 
