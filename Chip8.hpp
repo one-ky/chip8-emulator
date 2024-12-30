@@ -4,10 +4,17 @@
 #define CHIP8_HPP
 
 #include <cstdint>
+#include <random>
+#include <chrono>
+#include <random>
 
 class Chip8 //class for the chip8 components
+// created a class with the following components, we can now make variables with these attributes
 {
-public: 
+public: // can be called from any scope in the program
+
+    Chip8(); // constructor delaration
+
     uint8_t registers[16]{};
     uint8_t memory[4096]{};
     uint16_t index{};
@@ -19,6 +26,10 @@ public:
     uint8_t keypad[16]{};
     uint32_t video[64 * 32]{};
     uint16_t opcode;
+
+private: // cannot be called directly outside of the class, cannot be manipulated outside the class
+    std::default_random_engine randGen;
+    std::uniform_int_distribution<uint8_t> randByte;
 };
 
 # endif
