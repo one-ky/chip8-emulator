@@ -80,4 +80,23 @@ void Chip8::LoadROM(char const* filename)
 }
 
 // The Instructions
-// Chip8 has 32 instuctions we need to emulate, below is the opcode
+// Chip8 has 32 instuctions we need to emulate
+
+// Clear the display
+void Chip8::OP_00E0()
+{
+    memset(video, 0, sizeof(video))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
