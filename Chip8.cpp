@@ -79,36 +79,53 @@ void Chip8::LoadROM(char const* filename)
 
 }
 
+// we will address how to call these functions later. a cycle will fetch the instruction from memory, decode the instruction, execute the instruction
+// this will be called continuously in a main.cpp file 
+// for now we will just define the functions
+
 // The Instructions
 // Chip8 has 32 instuctions we need to emulate
 
-// Clear the display
+// CLS Clear the display
 void Chip8::OP_00E0()
 {
     memset(video, 0, sizeof(video))
 }
 
-// decrement stack pointer by one, set pc to return adress pushed onto stack before subrutine was called
+// RET decrement stack pointer by one, set pc to return adress pushed onto stack before subrutine was called
 void Chip8::OP_00EE()
 {
-    --sp;
-    pc = stack[sp]
+    --sp; // move stack pointer back to last saved spot
+    pc = stack[sp] // resotre the program counter from the stack, return to mem location before a jump to a subroutine
 }
 
 //jump to location nnn in memory and continue forward without saving original place
 void Chip8::OP_1nnn()
 {
-    uint16_t address = opcode & 0x0FFFu;
+    uint16_t address = opcode & 0x0FFFu; // & operator is helping us return the last 12 bits by masking the first 4 digits with 0, FFF show the last 12 digits
 }
 
-// call a subroutine, execute it, return to the next instruction after that call
+// call a subroutine, execute it, return to the next instruction after that call by checking the top of the stack 
 void Chip8::OP_2nnn()
 {
-    uint16_t addresss = opcode & 0x0FFFu;
+    uint16_t addresss = opcode & 0x0FFFu; // mask the fist 4 digits 
 
-    stack[sp] = pc;
-    ++sp;
-    pc = address;
+    stack[sp] = pc; // save current location to stack
+    ++sp; // increment stack pointer to prep for next save
+    pc = address; // jump in memory to the subroutine
+}
+
+// skip next instructoins if vf = kk, this is just incrementing pc by two again
+// its like an if else statement, if the condition is true, skip the next instruction and execute the one after, if it is false, execute the next instruction
+void Chip8::OP_3xkk()
+{
+    uint8_t Vx = (opcode & 0xF00u) >> 8u; // gives us the value of a given register, it shows the second nibble of 16bit instruction, if opcode was 0x3A1F it would return 0x0A00
+    uint8_t byte = opcode & 0x00FFu; // mask gives us the last byte, bits 0-7 which show a number
+
+    if (registers[Vx] == byte) // compare the number in register[Vx] with the byte number, if its the same increment pc by 2
+    {
+        pc +=2
+    } // this is like an if statement, if the value of the byte is the same as the register then increment the pc by two
 }
 
 

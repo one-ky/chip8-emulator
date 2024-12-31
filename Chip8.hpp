@@ -28,6 +28,25 @@ public: // can be called from any scope in the program
     uint16_t opcode;
 
 private: // cannot be called directly outside of the class, cannot be manipulated outside the class
+
+    // CLS
+    void OP_00E0();
+    
+    // RET
+    void OP_00EE();
+
+    // JMP address
+    void OP_1nnn();
+
+    // Call address
+    void OP_2nnn();
+
+    // SE Vx, byte
+    void OP_3xkk();
+
+    
+
+
     std::default_random_engine randGen;
     std::uniform_int_distribution<uint8_t> randByte;
 };
