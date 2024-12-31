@@ -88,6 +88,28 @@ void Chip8::OP_00E0()
     memset(video, 0, sizeof(video))
 }
 
+// decrement stack pointer by one, set pc to return adress pushed onto stack before subrutine was called
+void Chip8::OP_00EE()
+{
+    --sp;
+    pc = stack[sp]
+}
+
+//jump to location nnn in memory and continue forward without saving original place
+void Chip8::OP_1nnn()
+{
+    uint16_t address = opcode & 0x0FFFu;
+}
+
+// call a subroutine, execute it, return to the next instruction after that call
+void Chip8::OP_2nnn()
+{
+    uint16_t addresss = opcode & 0x0FFFu;
+
+    stack[sp] = pc;
+    ++sp;
+    pc = address;
+}
 
 
 

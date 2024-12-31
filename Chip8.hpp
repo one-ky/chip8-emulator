@@ -13,7 +13,7 @@ class Chip8 //class for the chip8 components
 {
 public: // can be called from any scope in the program
 
-    Chip8(); // constructor delaration
+    Chip8(); // constructor delaration, automatically runs when we create an object to setup, initializes the contents of the object
 
     uint8_t registers[16]{};
     uint8_t memory[4096]{};
