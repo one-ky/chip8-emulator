@@ -129,13 +129,71 @@ void Chip8::OP_3xkk()
 }
 
 
+void Chip8::OP_4xkk()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t byte = opcode & 0x00FFU;
+
+    if (register[Vx] != byte) // similar to above, but only runs if the numbet in the register is not the same as the nubmer we check
+    {
+        pc += 2;
+    }
+}
+
+// if two registers are equal, then we skip the next task
+void Chip8::OP_5xy0()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    unit8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (register[Vx] == register[Vy])
+    {
+        pc += 2
+    }
+}
+
+// register a register to a specific byte
+void Chip8::OP_6xkk()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t byte = opcode & 0x0FFu;
+
+    registers[Vx] = byte;
+}
+
+// increase a counter stored in a register by a value
+void Chip::OP_7xkk()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t byte = opcode & 0x00FFu;
+
+    registers[Vx] += byte;
+}
 
 
+// replace one register value with another
+void Chip8::OP_8xy0()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
+    registers[Vx] = registers[Vy];
+}
 
+// bitwise or opereration between two registers
+void Chip8::OP_8xy1()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
+    registers[Vx] |= registes[Vy];
+}
 
+//
+void Chip8::OP_8xy2()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
-
-
-
+    registers[Vx] &= registers[Vy];
+}
