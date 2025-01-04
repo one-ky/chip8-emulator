@@ -180,7 +180,8 @@ void Chip8::OP_8xy0()
     registers[Vx] = registers[Vy];
 }
 
-// bitwise or opereration between two registers
+// bitwise or opereration between two registers and store value in Vx
+// usecase could be for flags like if a byte represented powerups and each bit was on or off for a specific powerup, like 00101, the 1s are the powerups you have and 0s you could have but dont
 void Chip8::OP_8xy1()
 {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
@@ -189,7 +190,8 @@ void Chip8::OP_8xy1()
     registers[Vx] |= registes[Vy];
 }
 
-//
+// clears a bit value to 0, so set a mask bit value to 1 in the place you want, then call a flag of 1 at the location of what you want to turn it off
+// so an initial flag could be 0b00000111, and lag_A could be 0b00000001, call the flag to get 0b00000110 as the value
 void Chip8::OP_8xy2()
 {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
@@ -197,3 +199,129 @@ void Chip8::OP_8xy2()
 
     registers[Vx] &= registers[Vy];
 }
+
+// XOR operator to toggle on and off the bit
+void Chip8::OP_8xy3()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    registers[Vx] ^= registers[Vy];
+}
+
+// ADD with overflow, if the sum is greater than what can fit into a byte (255), register VF will be set to 1 as a flag
+void Chip8:: OP_8xy4()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    uint16 sum = registers[Vx] + registers[Vy];
+
+    if (sum > 255U)
+    {
+        registers[0xF] = 1; // register[0xF] is a special register called the carry flag, used to indicate if there was as overflow
+    }
+    else
+    {
+        registers[0xF] = 0;
+    }
+
+    registers[Vx] = sum & 0xFFu;
+}
+
+// if Vx > Vy, set flag register to 1, otherwise set to 0
+void Chip8::OP_8xy5()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (registers[Vx] > registers[Vy])
+    {
+        registers[0xF] = 1;
+    }
+    else
+    {
+        registers[0xF] = 0;
+    }
+
+    registers[Vx] -= registers[Vy];
+}
+
+// if the rightmost bit is 1, set VF to 1, otherwise set VF to 0, then Vx is divided by 2
+void Chip8::OP_8xy()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    
+    // save lsb in Vf
+    registers[0xF] = (registers[Vx] & 0x1u); // hexideciaml mask binary 00000001 to isolate the last bit
+
+    registers[Vx] >>= 1; // shifting over 1 bit in binary is the same as dividing by two
+
+}
+
+// Vx = Vy - Vx, if Vy > Vx set VF to 1, else 0
+void Chip8::OP_8xy7()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (registers[Vy] > registers[Vx])
+    {
+        registers[0xF] = 1;
+    }
+    else
+    {
+        register[0xF] = 0;
+    }
+
+    registers[Vx] = registeres[Vy] - registers[Vx];
+
+}
+
+// if the most significant bit of Vx is 1, set VF to 1, else 0. then Vx is multiplied by 2
+void Chip8::OP_8xyE()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    // save msb in VF
+    registers[0xF] = (registers[Vx] & 0x80u) >> 7u;
+
+    registers[Vx] <<= 1;
+}
+
+// skip next instructions if Vx != Vy
+void Chip8::OP_9xy0()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (registers[Vx] != registers[Vy])
+    {
+        pc += 2;
+    }
+}
+
+// set I = nn
+void Chip8::OP_Annn()
+{
+    uint16_t address = opcode & 0x0FFFu;
+
+    index = address; // index is a member of the chip8 class
+}
+
+// jump location nnn + V0
+void Chip8::OP_Bnnn()
+{
+    uint16_t address = opcode & 0c0FFFu;
+
+    pc = registers[0] + address;
+}
+
+// generate a random number, preform a bitewise AND with a given number, store the result in Vx
+void Chip8::OP_Cxkk()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t byte = opcode & 0x00FFu;
+
+    registers[Vx] = randByte(randGen) & byte;
+} 
