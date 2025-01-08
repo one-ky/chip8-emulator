@@ -473,3 +473,76 @@ void Chip8::OP_Fx0A()
         registers[Vx] = 15;
     }
 }
+
+// set delay timer = Vx
+void Chip8::OP_Fx15()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    delayTimer = registers[Vx];
+}
+
+// set timer sound to Vx
+void Chip8::OP_Fx18()
+{
+    uint8_t Vx = (opcode & 0c0F00u) >> 8u;
+
+    soundTimer = registers[Vx];
+}
+
+// set I = I + Vx
+void Chip8::OP_Fx1E()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    index += registers[Vx];
+}
+
+// set I = location of sprite for digit Vx
+void Chip8::OP_Fx29()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t digit = registers[Vx];
+
+    index = FONTSET_START_ADRESS + (5 * digit);
+}
+
+// helps convert hexidecimal to decimal
+void Chip8::OP_Fx33()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t value = registers[Vx];
+
+    //ones place
+    memory[index + 2] = value%10;
+
+    // tens place
+    memory[index + 1] = value % 10;
+
+    // hundreds place
+    memory[index] = value % 10;
+}
+
+// store register V0 through Vx in memory starting at location I
+void Chip8::OP_Fx55()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    for (uint8_t i = 0; i <= Vx; ++i)
+    {
+        memory[index + i] = registers[i];
+    }
+}
+
+// read register V0 through Vx from memory starting at location I
+void Chip8::OP_Fx65()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    for (uint8_t i = 0; i <= Vx; ++i)
+    {
+        registers[i] = memory[index + i];
+    }
+}
+
+// Function Pointer Table
