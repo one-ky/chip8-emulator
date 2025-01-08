@@ -318,6 +318,7 @@ void Chip8::OP_Bnnn()
 }
 
 // generate a random number, preform a bitewise AND with a given number, store the result in Vx
+// this is controlled randomness
 void Chip8::OP_Cxkk()
 {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
@@ -325,3 +326,81 @@ void Chip8::OP_Cxkk()
 
     registers[Vx] = randByte(randGen) & byte;
 } 
+
+// iterate over sprite row by row column by column
+// check if screen location i
+void Chip8::OP_Dxyn():
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u; // val stored in register Vx
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u; // val stored in Vy
+    uint8_t height = opcode & 0x000Fu;
+
+    // these are the corrdiantes of where the sprite will be drawn on the screen, (wrapped around if they go off the screen)
+    uint8_t xPos = registers[Vx] % VIDEO_WIDTH; // this is the x coordinate of the top left corner of the sprite
+    uint8_t yPos = registres[Vy] % VIDEO_HEIGHT; // this is the y coordinate of the top left corner of the sprite
+
+    registres[0xF] = 0; // initialize flag register to 0
+
+    for (unsigned int row = 0; row < height; ++row) // iterate over each row of the sprite for the height of the sprite, each row is a string of pixels
+    {
+        uint8_t spriteByte = memory[index + row]; // memory address of the current row of sprite data
+
+        for (unsigned int col = 0; col < 8; ++col) // 
+        {
+            uint8_t spritePixel = spriteByte & (0x80u >> col); // shift hex mask to position of current pixel within byte to isolate single bit which is 0 if off 1 if pixel is on
+            uint32_t* screenPixel = &video[(yPos + row) * VIDEO_WIDTH + (xPos + col)]; // screenPixel is a pointer to the memory location of where the current sprite pixel is, the one in the loop we are in
+            // {video} is a one dimensional member array where each element corresponds to a single pixel on the chip8s display
+            // {(yPos + row) * VIDEO_WIDTH + (xPos + col)} calculates the memory index where the screen pixel is equal to the sprite pixel
+            
+            // checks if the sprite pixel is on
+            if (spritePixel)
+            {
+                // if screen pixel at location we want to draw sprite is on, there is a collision 
+                if (*screenPixel == 0xFFFFFFFF)
+                {
+                    registeres[0xF] = 1; // set the flag to one
+                }
+
+                // Effectively XOR with the sprite pixel
+                *screenPixel ^= 0xFFFFFFFF; // toggles the screen pixel if the sprite pixel is on
+            }
+
+        }
+    }
+}
+
+// skip the next instructions if the key with the value of Vx is pressed
+void Chip8::OP_Ex9E()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    uint8_t key = regisers[Vx];
+
+    if (keypad[key])
+    {
+        pc += 2;
+    }
+}
+
+// skip the next instruction if key with the value of Vx is NOT pressed
+void Chip8::OP_ExA1()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    uint8_t key = registers[Vx];
+
+    if (!keypad[Vx])
+    {
+        pc += 2;
+    }
+}
+
+// set Vx = delay timer value
+void Chip8::OP_Fx07()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    registers[Vx] = delayTimer;
+}
+
+// decrement pc by two to run the same instruction repeadedly
