@@ -404,3 +404,72 @@ void Chip8::OP_Fx07()
 }
 
 // decrement pc by two to run the same instruction repeadedly
+void Chip8::OP_Fx0A()
+{
+    uint_8 Vx = (opcode & 0x0F00u) >> 8u;
+
+    if (keypad[0])
+    {
+        registers[Vx] = 0;
+    }
+    else if (keypad[1])
+    {
+        registers[Vx] = 1;
+    }
+    else if (keypad[2])
+    {
+        registers[Vx] = 2;
+    }
+    else if (keypad[3])
+    {
+        registers[Vx] = 3;
+    }
+    else if (keypad[4])
+    {
+        registers[Vx] = 4;
+    }
+    else if (keypad[5])
+    {
+        registers[Vx] = 5;
+    }
+    else if (keypad[6])
+    {
+        registers[Vx] = 6;
+    }
+    else if (keypad[7])
+    {
+        registers[Vx] = 7;
+    }
+    else if (keypad[8])
+    {
+        registers[Vx] = 8;
+    }
+    else if (keypad[9])
+    {
+        registers[Vx] = 9;
+    }
+    else if (keypad[10])
+    {
+        registers[Vx] = 10;
+    }
+    else if (keypad[11])
+    {
+        registers[Vx] = 11;
+    }
+    else if (keypad[12])
+    {
+        registers[Vx] = 12;
+    }
+    else if (keypad[13])
+    {
+        registers[Vx] = 13;
+    }
+    else if (keypad[14])
+    {
+        registers[Vx] = 14;
+    }
+    else if (keypad[15])
+    {
+        registers[Vx] = 15;
+    }
+}
