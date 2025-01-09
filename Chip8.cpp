@@ -46,6 +46,39 @@ Chip8::Chip8()
 
     // Initialize RNG
     randByte = std::uniform_int_distribution<uint8_t>(0, 255U); //get a random number between 0 and 255
+
+    // Set up Function pointer table, it stores the memory address of a function. we could theoretically use switch statements or if else but this is faster
+    // table is our main lookup table, it looks at the first nibble (first 4 bits, half a byte) of the opcode, in the opcode it will be a single hex
+    table[0x0] = &Chip8::Table0; // secondary tables that points to opcode that starts with 0x0
+    table[0x1] = &Chip8::OP_1nnn; // this sets the element at index 0x1 in the table aray to the address of Chip8::OP_1nnn, & operator is used to get the memory location
+    table[0x2] = &Chip8::OP_2nnn;
+    table[0x3] = &Chip8::OP_3xkk;
+    table[0x4] = &Chip8::OP_4xkk;
+    table[0x5] = &Chip8::OP_5xy0;
+    table[0x6] = &Chip8::OP_6xkk;
+    table[0x7] = &Chip8::OP_7xkk;
+    table[0x8] = &Chip8::Table8; // secondary table that points to opcode that starts with 0x8, in opcode that starts with 0x8 the last bit is nessesary to differentiate which function to call
+    table[0x9] = &Chip8::OP_9xy0;
+    table[0xA] = &Chip8::OP_Annn;
+    table[0xB] = &Chip8::OP_Bnnn;
+    table[0xC] = &Chip8::OP_Cxkk;
+    table[0xD] = &Chip8::OP_Dxyn;
+    table[0xE] = &Chip8::TableE; // secondary table that again needs last byte to differentiate 
+    table[0xF] = &Chip8::TableF; // secondary table that again needs last byte to differentiate
+
+    // this loop will initialize all the secondary table values to a function pointer to NULL, just in case there is an opcode in the rom that is incorrect or something like that there wont be a function that is called that has no defined action
+    // we initialize all the values to null, and then we update the ones that have functions after this loop here
+    for (size_t = 0; i <= 0xE; i++) // i here takes on the value of 0x0 (0000 in binay) up to 0xE (1110), which is basically 0-14 in real digits as these are the only possible values the last byte could take according to the CHIP-8 instructions
+    {
+        table0[i] = &Chip8::OP_NULL;
+        table8[i] = &Chip8::OP_NULL;
+        tableE[i] = &Chip8::OP_NULL;
+    }
+
+
+
+
+    
 }
 
 
@@ -162,7 +195,7 @@ void Chip8::OP_6xkk()
 }
 
 // increase a counter stored in a register by a value
-void Chip::OP_7xkk()
+void Chip8::OP_7xkk()
 {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t byte = opcode & 0x00FFu;
@@ -248,7 +281,7 @@ void Chip8::OP_8xy5()
 }
 
 // if the rightmost bit is 1, set VF to 1, otherwise set VF to 0, then Vx is divided by 2
-void Chip8::OP_8xy()
+void Chip8::OP_8xy6()
 {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     
