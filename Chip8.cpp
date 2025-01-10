@@ -139,12 +139,43 @@ void Chip8::LoadROM(char const* filename)
 
 }
 
-// we will address how to call these functions later. a cycle will fetch the instruction from memory, decode the instruction, execute the instruction
-// this will be called continuously in a main.cpp file 
-// for now we will just define the functions
+// Table0 through OP_NULL are member functions
+void Table0() // function parameter list is empty ()
+{
+((*this).*(table0[opcode & 0x000Fu]))();
+// {this} is a key word in c++, it is a pointer that holds the memory locatoin of the current object on which the function was called
+// {*this} is dereferencing the this pointer to access the object at the {this} memory location
+// {.} is the dot operator used to access the membership of an object, 
+// {.*} here is used to call a member function pointer, * is used to dereference the function pointer, getting the actual value of the function from its memory address
+// table0 is an array of function pointers, each element holds the memory address of a function
+// opcode is variable that holds the 16bit opcode
+// & 0x000Fu is to mask to isolate the last 4 bits
+// IN ESSENSE
+// it extracts the last nibble of the opcode, uses that nibble as an index into the table0 to get a function pointer, calls the function pointed to by that pointer, using the syntax for calling a 
+    // member function through a pointer on a specific object this
+}
 
-// The Instructions
-// Chip8 has 32 instuctions we need to emulate
+void Table8()
+{
+    ((*this).*(table8[opcode & 0x000Fu]))();
+}
+
+void TableE()
+{
+    ((*this).*(tableE[opcode & 0x00FFu]))();
+}
+
+void TableF()
+{
+    ((*this))
+}
+
+void OP_NULL()
+{}
+
+
+
+// The Instructions Chip8 has 32 instuctions we need to emulate
 
 // CLS Clear the display
 void Chip8::OP_00E0()
