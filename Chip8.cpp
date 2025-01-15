@@ -123,6 +123,7 @@ void Chip8::LoadROM(char const* filename)
     {
         //
         std::streampos size = file.tellg();
+        std::cout << "Loading ROM, SIZE: " << size << "bytes\n";
         char* buffer = new char[size];
 
         // go back to the begginning of the file and fill the buffer
@@ -137,6 +138,10 @@ void Chip8::LoadROM(char const* filename)
         }
         // free the buffer
         delete [] buffer;
+    }
+    else
+    {
+        std::cout <<"Failed to open Rom file \n";
     }
 
 }
