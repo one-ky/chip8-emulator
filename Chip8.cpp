@@ -154,7 +154,7 @@ void Chip8::Cycle()
     pc += 2;
 
     // decodes the first nibble of opcode, finds the corresponding function pointer in the table array, calls that function
-    ((*this).*(table[(opcode & 0xF000u) >> 12u]))();
+    (this->*(table[(opcode & 0xF000u) >> 12u]))();
     // opcode...12u extracting and shifting the its to turn it into a number
     // index into the function pointer table with this[op..12u]  
     // ((*this...)) syntax for calling a member function using a pointer to it
