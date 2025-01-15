@@ -8,6 +8,7 @@
 #include <chrono>
 #include <random>
 
+
 const unsigned int KEY_COUNT = 16;
 const unsigned int MEMORY_SIZE = 4096;
 const unsigned int REGISTER_COUNT = 16;

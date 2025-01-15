@@ -38,7 +38,7 @@ int main(int argc, char** argv) // argc is the nubmer of command line arguments 
         // update the state of the chip8 keys based on keyboad input, return true if the user wants to quit
         // it basically handles user input and updates the quit variable if nessesary
 
-        // measures the time elapsed since the last cycle
+        // measures the time elapsed since the last cycleOP_Dxyn
         auto currentTime = std::chrono::high_resolution_clock::now();
         float dt = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - lastCycleTime).count();
 
@@ -46,6 +46,7 @@ int main(int argc, char** argv) // argc is the nubmer of command line arguments 
         if (dt > cycleDelay)
         {
             lastCycleTime = currentTime;
+            std::cout << "Running cycle \n";
 
             chip8.Cycle();
 

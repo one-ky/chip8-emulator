@@ -2,6 +2,7 @@
 #include "Chip8.hpp"
 #include <random>
 #include <cstring>
+#include <iostream>
 
 //roms will look for memeory starting at 0x200 address as the 0x000-0x1FF was reserved in the original
 const unsigned int START_ADRESS = 0x200; 
@@ -235,6 +236,7 @@ void Chip8::OP_00EE()
 void Chip8::OP_1nnn()
 {
     uint16_t address = opcode & 0x0FFFu; // & operator is helping us return the last 12 bits by masking the first 4 digits with 0, FFF show the last 12 digits
+    pc = address;
 }
 
 // call a subroutine, execute it, return to the next instruction after that call by checking the top of the stack 
@@ -467,6 +469,8 @@ void Chip8::OP_Dxyn()
     uint8_t Vy = (opcode & 0x00F0u) >> 4u; // val stored in Vy
     uint8_t height = opcode & 0x000Fu;
 
+    std::cout << "Drawing sprite at position: (" << (int)registers[Vx] << "," << (int)registers[Vy] << ")\n";
+
     // these are the corrdiantes of where the sprite will be drawn on the screen, (wrapped around if they go off the screen)
     uint8_t xPos = registers[Vx] % VIDEO_WIDTH; // this is the x coordinate of the top left corner of the sprite
     uint8_t yPos = registers[Vy] % VIDEO_HEIGHT; // this is the y coordinate of the top left corner of the sprite
@@ -521,7 +525,7 @@ void Chip8::OP_ExA1()
 
     uint8_t key = registers[Vx];
 
-    if (!keypad[Vx])
+    if (!keypad[key])
     {
         pc += 2;
     }
@@ -646,12 +650,14 @@ void Chip8::OP_Fx33()
     uint8_t value = registers[Vx];
 
     //ones place
-    memory[index + 2] = value%10;
+    memory[index + 2] = value % 10;
 
     // tens place
+    value /= 10;
     memory[index + 1] = value % 10;
 
     // hundreds place
+    value /= 10;
     memory[index] = value % 10;
 }
 

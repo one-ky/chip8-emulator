@@ -1,6 +1,11 @@
 #include "Platform.hpp"
 
 Platform::Platform(char const* title, int windowWidth, int windowHeight, int textureWidth, int textureHeight) // constructor for the platform class, takes in arguments
+// the platform class is used to handle how the emulator interacts with my operating system
+//	it handles
+// 		creating the window on the screen where the game will be displayed
+// 		updating the window with what should be drawn on the screen
+// 		checking if any keys on the keyboard are being pressed
 {
 	SDL_Init(SDL_INIT_VIDEO); // initializes the sdl video system
 
