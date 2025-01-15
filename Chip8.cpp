@@ -1,6 +1,7 @@
 #include <fstream> // this includes teh fsteam header file which provides functionality for file input/output in c++
 #include "Chip8.hpp"
 #include <random>
+#include <cstring>
 
 //roms will look for memeory starting at 0x200 address as the 0x000-0x1FF was reserved in the original
 const unsigned int START_ADRESS = 0x200; 
@@ -68,7 +69,7 @@ Chip8::Chip8()
 
     // this loop will initialize all the secondary table values to a function pointer to NULL, just in case there is an opcode in the rom that is incorrect or something like that there wont be a function that is called that has no defined action
     // we initialize all the values to null, and then we update the ones that have functions after this loop here
-    for (size_t = 0; i <= 0xE; i++) // i here takes on the value of 0x0 (0000 in binay) up to 0xE (1110), which is basically 0-14 in real digits as these are the only possible values the last byte could take according to the CHIP-8 instructions
+    for (size_t i = 0; i <= 0xE; i++) // i here takes on the value of 0x0 (0000 in binay) up to 0xE (1110), which is basically 0-14 in real digits as these are the only possible values the last byte could take according to the CHIP-8 instructions
     {
         table0[i] = &Chip8::OP_NULL;
         table8[i] = &Chip8::OP_NULL;
@@ -139,10 +140,49 @@ void Chip8::LoadROM(char const* filename)
 
 }
 
-// Table0 through OP_NULL are member functions
-void Table0() // function parameter list is empty ()
+// One cycle of this CPU will do three things
+// Fetch the next instruction in the form of opcode
+// Decode the instruction to determine what operation needs to occur
+// execute the instuction
+void Chip8::Cycle()
 {
-((*this).*(table0[opcode & 0x000Fu]))();
+    // Fetch
+    opcode = (memory[pc] << 8u) | memory[pc + 1]; // memory is a member variable representing the chip8s memory, the | is used to combine the shifted bytes to create a single 16 bit value
+    // remember the opcode first 8 bits is the function and last 8 bits is the numbers
+    
+    // increment the pc before we execute anything
+    pc += 2;
+
+    // decodes the first nibble of opcode, finds the corresponding function pointer in the table array, calls that function
+    (this->*(table[(opcode & 0xF000u) >> 12u]))();
+    // opcode...12u extracting and shifting the its to turn it into a number
+    // index into the function pointer table with this[op..12u]  
+    // ((*this...)) syntax for calling a member function using a pointer to it
+        // this is a pointer to the current chip8 object
+        // dot operator is used to access a member
+        // * is used to dereference the function pointer that was retrieved from the table, dereference to get the actual function not just the mem location
+    
+
+    // decrement the delay timer if its been set
+    if (delayTimer > 0)
+    {
+        --delayTimer;
+    }
+
+    // decrement the sound timer if its been set
+    if (soundTimer > 0)
+    {
+        --soundTimer;
+    }
+
+}
+
+
+
+// Table0 through OP_NULL are member functions
+void Chip8::Table0() // function parameter list is empty ()
+{
+(this ->*table0[opcode & 0x000Fu])(); // removed *this
 // {this} is a key word in c++, it is a pointer that holds the memory locatoin of the current object on which the function was called
 // {*this} is dereferencing the this pointer to access the object at the {this} memory location
 // {.} is the dot operator used to access the membership of an object, 
@@ -155,22 +195,22 @@ void Table0() // function parameter list is empty ()
     // member function through a pointer on a specific object this
 }
 
-void Table8()
+void Chip8::Table8()
 {
-    ((*this).*(table8[opcode & 0x000Fu]))();
+    (this->*(table8[opcode & 0x000Fu]))();
 }
 
-void TableE()
+void Chip8::TableE()
 {
-    ((*this).*(tableE[opcode & 0x00FFu]))();
+    (this->*(tableE[opcode & 0x00FFu]))();
 }
 
-void TableF()
+void Chip8::TableF()
 {
-    ((*this))
+    (this->*(tableF[opcode & 0x00FFu]))();
 }
 
-void OP_NULL()
+void Chip8::OP_NULL()
 {}
 
 
@@ -180,14 +220,14 @@ void OP_NULL()
 // CLS Clear the display
 void Chip8::OP_00E0()
 {
-    memset(video, 0, sizeof(video))
+    memset(video, 0, sizeof(video));
 }
 
 // RET decrement stack pointer by one, set pc to return adress pushed onto stack before subrutine was called
 void Chip8::OP_00EE()
 {
     --sp; // move stack pointer back to last saved spot
-    pc = stack[sp] // resotre the program counter from the stack, return to mem location before a jump to a subroutine
+    pc = stack[sp]; // resotre the program counter from the stack, return to mem location before a jump to a subroutine
 }
 
 //jump to location nnn in memory and continue forward without saving original place
@@ -199,7 +239,7 @@ void Chip8::OP_1nnn()
 // call a subroutine, execute it, return to the next instruction after that call by checking the top of the stack 
 void Chip8::OP_2nnn()
 {
-    uint16_t addresss = opcode & 0x0FFFu; // mask the fist 4 digits 
+    uint16_t address = opcode & 0x0FFFu; // mask the fist 4 digits 
 
     stack[sp] = pc; // save current location to stack
     ++sp; // increment stack pointer to prep for next save
@@ -215,7 +255,7 @@ void Chip8::OP_3xkk()
 
     if (registers[Vx] == byte) // compare the number in register[Vx] with the byte number, if its the same increment pc by 2
     {
-        pc +=2
+        pc +=2;
     } // this is like an if statement, if the value of the byte is the same as the register then increment the pc by two
 }
 
@@ -225,7 +265,7 @@ void Chip8::OP_4xkk()
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t byte = opcode & 0x00FFU;
 
-    if (register[Vx] != byte) // similar to above, but only runs if the numbet in the register is not the same as the nubmer we check
+    if (registers[Vx] != byte) // similar to above, but only runs if the numbet in the register is not the same as the nubmer we check
     {
         pc += 2;
     }
@@ -235,11 +275,11 @@ void Chip8::OP_4xkk()
 void Chip8::OP_5xy0()
 {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
-    unit8_t Vy = (opcode & 0x00F0u) >> 4u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
-    if (register[Vx] == register[Vy])
+    if (registers[Vx] == registers[Vy])
     {
-        pc += 2
+        pc += 2;
     }
 }
 
@@ -278,7 +318,7 @@ void Chip8::OP_8xy1()
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
-    registers[Vx] |= registes[Vy];
+    registers[Vx] |= registers[Vy];
 }
 
 // clears a bit value to 0, so set a mask bit value to 1 in the place you want, then call a flag of 1 at the location of what you want to turn it off
@@ -306,7 +346,7 @@ void Chip8:: OP_8xy4()
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
-    uint16 sum = registers[Vx] + registers[Vy];
+    uint16_t sum = registers[Vx] + registers[Vy];
 
     if (sum > 255U)
     {
@@ -362,10 +402,10 @@ void Chip8::OP_8xy7()
     }
     else
     {
-        register[0xF] = 0;
+        registers[0xF] = 0;
     }
 
-    registers[Vx] = registeres[Vy] - registers[Vx];
+    registers[Vx] = registers[Vy] - registers[Vx];
 
 }
 
@@ -403,7 +443,7 @@ void Chip8::OP_Annn()
 // jump location nnn + V0
 void Chip8::OP_Bnnn()
 {
-    uint16_t address = opcode & 0c0FFFu;
+    uint16_t address = opcode & 0x0FFFu;
 
     pc = registers[0] + address;
 }
@@ -420,7 +460,7 @@ void Chip8::OP_Cxkk()
 
 // iterate over sprite row by row column by column
 // check if screen location i
-void Chip8::OP_Dxyn():
+void Chip8::OP_Dxyn()
 {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u; // val stored in register Vx
     uint8_t Vy = (opcode & 0x00F0u) >> 4u; // val stored in Vy
@@ -428,9 +468,9 @@ void Chip8::OP_Dxyn():
 
     // these are the corrdiantes of where the sprite will be drawn on the screen, (wrapped around if they go off the screen)
     uint8_t xPos = registers[Vx] % VIDEO_WIDTH; // this is the x coordinate of the top left corner of the sprite
-    uint8_t yPos = registres[Vy] % VIDEO_HEIGHT; // this is the y coordinate of the top left corner of the sprite
+    uint8_t yPos = registers[Vy] % VIDEO_HEIGHT; // this is the y coordinate of the top left corner of the sprite
 
-    registres[0xF] = 0; // initialize flag register to 0
+    registers[0xF] = 0; // initialize flag register to 0
 
     for (unsigned int row = 0; row < height; ++row) // iterate over each row of the sprite for the height of the sprite, each row is a string of pixels
     {
@@ -449,7 +489,7 @@ void Chip8::OP_Dxyn():
                 // if screen pixel at location we want to draw sprite is on, there is a collision 
                 if (*screenPixel == 0xFFFFFFFF)
                 {
-                    registeres[0xF] = 1; // set the flag to one
+                    registers[0xF] = 1; // set the flag to one
                 }
 
                 // Effectively XOR with the sprite pixel
@@ -465,7 +505,7 @@ void Chip8::OP_Ex9E()
 {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
-    uint8_t key = regisers[Vx];
+    uint8_t key = registers[Vx];
 
     if (keypad[key])
     {
@@ -497,7 +537,7 @@ void Chip8::OP_Fx07()
 // decrement pc by two to run the same instruction repeadedly
 void Chip8::OP_Fx0A()
 {
-    uint_8 Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
     if (keypad[0])
     {
@@ -576,7 +616,7 @@ void Chip8::OP_Fx15()
 // set timer sound to Vx
 void Chip8::OP_Fx18()
 {
-    uint8_t Vx = (opcode & 0c0F00u) >> 8u;
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
     soundTimer = registers[Vx];
 }
